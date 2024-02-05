@@ -7,7 +7,7 @@ interface ApiResponse<T> {
 }
 
 // Define the base URL for your API
-const baseURL = "http://localhost:5000";
+const baseURL = "https://song-api-c0eb.onrender.com";
 
 // Fetch songs from the server
 export const fetchSongsApi = async (): Promise<ApiResponse<Song[]>> => {
