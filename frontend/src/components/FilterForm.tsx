@@ -1,31 +1,78 @@
-import React, { useState } from "react";
+import styled from "@emotion/styled";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { FaFilter } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-// import { filterSongs } from "../features/songSlice";
+import { filterSongApi } from "../api/api";
+import {
+  fetchFilteredSongsFailure,
+  fetchFilteredSongsStart,
+  fetchFilteredSongsSuccess,
+} from "../features/songSlice";
+
+const Select = styled.select`
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  border-radius: 4px;
+`;
+const Container = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-left: 22px;
+  padding-right: 22px;
+`;
 
 const FilterForm: React.FC = () => {
   const dispatch = useDispatch();
   const [genre, setGenre] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // dispatch(filterSongs(genre));
-    setGenre("");
-  };
+  const handleGenreChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setGenre(e.target.value);
+    },
+    []
+  );
+
+  const fetchFilteredSongs = useCallback(async () => {
+    try {
+      dispatch(fetchFilteredSongsStart());
+      const response = await filterSongApi(genre);
+      dispatch(fetchFilteredSongsSuccess(response.data));
+    } catch (error: any) {
+      dispatch(fetchFilteredSongsFailure(error.message));
+      throw error;
+    }
+  }, [dispatch, genre]);
+
+  useEffect(() => {
+    fetchFilteredSongs();
+  }, [fetchFilteredSongs]);
+
+  const genreOptions = useMemo(
+    () => (
+      <>
+        <option value="">Select genre</option>
+        <option value="pop">Pop</option>
+        <option value="reggae">Reggae</option>
+        <option value="traditional">Traditional</option>
+        <option value="rock">Rock</option>
+        <option value="other">Other</option>
+      </>
+    ),
+    []
+  );
 
   return (
-    <div>
-      <h2>Filter Songs</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Genre"
-          value={genre}
-          onChange={(e) => setGenre(e.target.value)}
-        />
-        <button type="submit">Filter</button>
-      </form>
-    </div>
+    <Container>
+      <h4>Filter Songs</h4>
+      <FaFilter />
+      <Select value={genre} onChange={handleGenreChange}>
+        {genreOptions}
+      </Select>
+    </Container>
   );
 };
 
-export default FilterForm;
+export default memo(FilterForm);

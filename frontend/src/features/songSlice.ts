@@ -5,14 +5,27 @@ import {
   createSongApi,
   updateSongApi,
   deleteSongApi,
+  filterSongApi,
 } from "../api/api"; // Define your API functions
-import { Song, SongsState, SongWithoutId } from "../interfaces/Song";
+import {
+  Song,
+  SongsState,
+  SongWithoutId,
+  Statistics,
+} from "../interfaces/Song";
 import { UseDispatch } from "react-redux";
 
 // Define the initial state
 
 const initialState: SongsState = {
   songs: [],
+  filteredSongs: [],
+  statData: {
+    totalSongs: 0,
+    uniqueArtists: 0,
+    uniqueAlbums: 0,
+    uniqueGenres: 0,
+  },
   loading: false,
   error: null,
 };
@@ -31,6 +44,30 @@ const songsSlice = createSlice({
       state.songs = action.payload;
     },
     fetchSongsFailure(state, action: PayloadAction<string>) {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    fetchFilteredSongsStart(state) {
+      state.loading = true;
+      state.error = null;
+    },
+    fetchFilteredSongsSuccess(state, action: PayloadAction<Song[]>) {
+      state.loading = false;
+      state.filteredSongs = action.payload;
+    },
+    fetchFilteredSongsFailure(state, action: PayloadAction<string>) {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    fetchStatSongsStart(state) {
+      state.loading = true;
+      state.error = null;
+    },
+    fetchStatSongsSuccess(state, action: PayloadAction<Statistics>) {
+      state.loading = false;
+      state.statData = action.payload;
+    },
+    fetchStatSongsFailure(state, action: PayloadAction<string>) {
       state.loading = false;
       state.error = action.payload;
     },
@@ -53,7 +90,7 @@ const songsSlice = createSlice({
     updateSongSuccess(state, action: PayloadAction<Song>) {
       state.loading = false;
       state.songs = state.songs.map((song) =>
-        song.id === action.payload.id ? action.payload : song
+        song._id === action.payload._id ? action.payload : song
       );
     },
     updateSongFailure(state, action: PayloadAction<string>) {
@@ -66,7 +103,7 @@ const songsSlice = createSlice({
     },
     deleteSongSuccess(state, action: PayloadAction<string>) {
       state.loading = false;
-      state.songs = state.songs.filter((song) => song.id !== action.payload);
+      state.songs = state.songs.filter((song) => song._id !== action.payload);
     },
     deleteSongFailure(state, action: PayloadAction<string>) {
       state.loading = false;
@@ -82,6 +119,14 @@ function* fetchSongsSaga() {
     yield put(fetchSongsSuccess(songs));
   } catch (error: any) {
     yield put(fetchSongsFailure(error.message));
+  }
+}
+function* fetchFilteredSongsSaga(action: PayloadAction<string>) {
+  try {
+    const songs: Song[] = yield call(filterSongApi, action.payload);
+    yield put(fetchFilteredSongsSuccess(songs));
+  } catch (error: any) {
+    yield put(fetchFilteredSongsFailure(error.message));
   }
 }
 
@@ -115,6 +160,9 @@ function* deleteSongSaga(action: PayloadAction<string>) {
 export function* watchFetchSongs() {
   yield takeLatest("songs/fetchSongsStart", fetchSongsSaga);
 }
+export function* watchFilteredSongs() {
+  yield takeLatest("songs/fetchFilteredSongsStart", fetchFilteredSongsSaga);
+}
 
 export function* watchCreateSong() {
   yield takeLatest("songs/createSongStart", createSongSaga);
@@ -133,6 +181,12 @@ export const {
   fetchSongsStart,
   fetchSongsSuccess,
   fetchSongsFailure,
+  fetchStatSongsStart,
+  fetchStatSongsSuccess,
+  fetchStatSongsFailure,
+  fetchFilteredSongsStart,
+  fetchFilteredSongsSuccess,
+  fetchFilteredSongsFailure,
   createSongStart,
   createSongSuccess,
   createSongFailure,

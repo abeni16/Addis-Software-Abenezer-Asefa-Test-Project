@@ -8,7 +8,6 @@ import HomePage from "./pages/HomePage";
 import Statistics from "./pages/Statistics";
 import GlobalStyles from "./styles/globalStyles";
 import { theme } from "./styles/themes";
-import AddSongForm from "./components/AddSongForm";
 
 const App: React.FC = () => {
   return (

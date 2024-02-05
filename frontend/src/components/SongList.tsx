@@ -15,6 +15,7 @@ import SkeletonCardComponent from "./Skeleton";
 const SongListContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
+  padding: 16px;
   gap: 5px;
   @media screen and (min-width: 768px) {
     /* 4 columns on desktop */
@@ -41,8 +42,10 @@ const SongListContainer = styled.div`
 
 const SongList: React.FC = () => {
   const songs = useSelector((state: RootState) => state.songs.songs);
+  const filteredSongs = useSelector(
+    (state: RootState) => state.songs.filteredSongs
+  );
   const loading = useSelector((state: RootState) => state.songs.loading);
-
   const dispatch = useDispatch();
 
   const fetchSong = useCallback(async () => {
@@ -50,26 +53,35 @@ const SongList: React.FC = () => {
       dispatch(fetchSongsStart());
       const response = await fetchSongsApi();
       dispatch(fetchSongsSuccess(response.data));
-      return response.data; // Return the created song
+      return response.data;
     } catch (error: any) {
       dispatch(fetchSongsFailure(error.message));
-      throw error; // Throw the error to be caught by the caller if necessary
+      throw error;
     }
   }, []);
 
   useEffect(() => {
     fetchSong();
-  }, []);
+  }, [filteredSongs, dispatch]);
 
   console.log(songs.length, "songs");
+
   return (
     <SongListContainer>
-      {loading
-        ? Array.from({ length: 6 }).map((_, index) => (
-            <SkeletonCardComponent key={index} />
-          ))
-        : Array.isArray(songs) &&
-          songs.map((song) => <SongItem key={song.id} song={song} />)}
+      {loading ? (
+        Array.from({ length: 6 }).map((_, index) => (
+          <SkeletonCardComponent key={index} />
+        ))
+      ) : (
+        <>
+          {filteredSongs && filteredSongs.length > 0
+            ? filteredSongs.map((song) => (
+                <SongItem key={song._id} song={song} />
+              ))
+            : Array.isArray(songs) &&
+              songs.map((song) => <SongItem key={song._id} song={song} />)}
+        </>
+      )}
     </SongListContainer>
   );
 };

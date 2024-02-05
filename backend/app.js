@@ -2,16 +2,17 @@ const express = require("express");
 const mongoose = require("mongoose");
 const songRouter = require("./routes/songs");
 const cors = require("cors");
+require("dotenv").config(); // Load .env variables
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-
+console.log(process.env.MONGODB_URL);
 // Connect to MongoDB
-mongoose.connect(
-  "mongodb+srv://abeni16:0912abeni@cluster0.gajoc.mongodb.net/",
-  { useNewUrlParser: true, useUnifiedTopology: true }
-);
+mongoose.connect(process.env.MONGODB_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 

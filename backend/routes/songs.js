@@ -23,8 +23,19 @@ router.get("/", async (req, res) => {
   }
 });
 
+// List all songs
+router.get("/", async (req, res) => {
+  try {
+    const songs = await Song.find();
+    res.json(songs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Update a song
 router.patch("/:id", async (req, res) => {
+  console.log(req.params.id, req.body, "hello");
   try {
     const song = await Song.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -39,20 +50,29 @@ router.patch("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     console.log(req.body, req.params);
-    await Song.findByIdAndDelete(req.params.id);
-    res.json({ message: "Song deleted" });
+    const song = await Song.findByIdAndDelete(req.params.id);
+    res.json({ _id: song.id });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
-
+// Filter songs by genre
+router.get("/genre/:genre", async (req, res) => {
+  const genre = req.params.genre;
+  try {
+    const songs = await Song.find({ genre: genre });
+    res.json(songs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 // Generate overall statistics
 router.get("/statistics", async (req, res) => {
   try {
     const totalSongs = await Song.countDocuments();
-    const uniqueArtists = await Song.distinct("artist").countDocuments();
-    const uniqueAlbums = await Song.distinct("album").countDocuments();
-    const uniqueGenres = await Song.distinct("genre").countDocuments();
+    const uniqueArtists = (await Song.distinct("artist")).length;
+    const uniqueAlbums = (await Song.distinct("album")).length;
+    const uniqueGenres = (await Song.distinct("genre")).length;
 
     // Additional statistics as per your requirement
 

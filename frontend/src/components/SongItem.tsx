@@ -9,6 +9,7 @@ import {
   deleteSongSuccess,
 } from "../features/songSlice";
 import { deleteSongApi } from "../api/api";
+import EditSongModal from "./EditSongForm";
 
 // Styled song card component
 const SongCard = styled.div`
@@ -22,11 +23,10 @@ const SongCard = styled.div`
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 16px;
   width: 100%;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+  max-width: 500px;
+  transition: 0.5s ease;
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
   }
 `;
 
@@ -67,6 +67,16 @@ const IconContainer = styled.div`
 
 const Icon = styled.i`
   cursor: pointer;
+  padding: 8px;
+  height: 30px;
+  width: 30px;
+  display: flex;
+  background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent background */
+  backdrop-filter: blur(10px);
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 100px;
 `;
 const ModalContent = styled.div`
   background: white;
@@ -123,17 +133,23 @@ interface Props {
 }
 
 const SongItem: React.FC<Props> = ({ song }) => {
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const handleEditClick = () => {
+    setShowEditModal(!showEditModal);
+  };
   const [showConfirmation, setShowConfirmation] = useState(false);
   const dispatch = useDispatch();
 
   const handleDelete = async () => {
-    console.log(song.id);
+    console.log(song._id);
 
     try {
       dispatch(deleteSongStart());
-      if (song.id) {
-        const response = await deleteSongApi(song.id);
-        dispatch(deleteSongSuccess(response.data.id));
+      if (song._id) {
+        const response = await deleteSongApi(song._id);
+        console.log(response);
+        dispatch(deleteSongSuccess(response.data._id));
         setShowConfirmation(false);
 
         return response.data; // Return the created song
@@ -164,10 +180,10 @@ const SongItem: React.FC<Props> = ({ song }) => {
             className="fas fa-trash"
             onClick={() => setShowConfirmation(true)}
           >
-            <FaTrash color="red" />
+            <FaTrash fontSize={16} color="red" />
           </Icon>
-          <Icon className="fas fa-edit">
-            <FaEdit color="#007bff" />
+          <Icon className="fas fa-edit" onClick={handleEditClick}>
+            <FaEdit fontSize={16} color="#007bff" />
           </Icon>
         </IconContainer>
       </SongCard>
@@ -180,6 +196,8 @@ const SongItem: React.FC<Props> = ({ song }) => {
           </ModalContent>
         </ConfirmationDialog>
       )}
+      {/* Render the edit song modal */}
+      {showEditModal && <EditSongModal onClose={handleEditClick} song={song} />}
     </>
   );
 };

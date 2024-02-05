@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios";
-import { Song, SongWithoutId } from "../interfaces/Song";
+import { Song, SongWithoutId, Statistics } from "../interfaces/Song";
 
 // Define the response type for the API
 interface ApiResponse<T> {
@@ -16,6 +16,35 @@ export const fetchSongsApi = async (): Promise<ApiResponse<Song[]>> => {
     return { data: response.data };
   } catch (error) {
     throw new Error("Failed to fetch songs");
+  }
+};
+
+export const fetchStatSongsApi = async (): Promise<ApiResponse<Statistics>> => {
+  try {
+    const response: AxiosResponse<Statistics> = await axios.get(
+      `${baseURL}/songs/statistics`
+    );
+    return { data: response.data };
+  } catch (error) {
+    throw new Error("Failed to fetch songs");
+  }
+};
+
+export const filterSongApi = async (
+  genre: string
+): Promise<ApiResponse<Song[]>> => {
+  console.log(genre);
+  try {
+    if (genre) {
+      const response: AxiosResponse<Song[]> = await axios.get(
+        `${baseURL}/songs/genre/${genre}`
+      );
+      return { data: response.data };
+    } else {
+      return { data: [] };
+    }
+  } catch (error) {
+    throw new Error("Failed to filter song");
   }
 };
 
@@ -39,9 +68,10 @@ export const createSongApi = async (
 export const updateSongApi = async (
   updatedSong: Song
 ): Promise<ApiResponse<Song>> => {
+  console.log(updatedSong, updatedSong._id);
   try {
     const response: AxiosResponse<Song> = await axios.patch(
-      `${baseURL}/songs/${updatedSong.id}`,
+      `${baseURL}/songs/${updatedSong._id}`,
       updatedSong
     );
     return { data: response.data };
